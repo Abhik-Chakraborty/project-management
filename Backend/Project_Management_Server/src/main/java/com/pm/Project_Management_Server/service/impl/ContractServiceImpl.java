@@ -29,7 +29,7 @@ public class ContractServiceImpl implements ContractService {
                 .orElseThrow(() -> new NotFoundException("Project not found with id: " + dto.getProjectId()));
         ResourceRequired resourceRequired = resourceRequiredRepository.findById(dto.getResourceReqId())
                 .orElseThrow(() -> new NotFoundException("ResourceRequired not found with id: " + dto.getResourceReqId()));
-        if (!resourceRequired.getProjectId().equals(dto.getProjectId())) {
+        if (!resourceRequired.getProject().getId().equals(dto.getProjectId())) {
             throw new IllegalArgumentException("ResourceRequired does not belong to the given project.");
         }
         Contract contract = new Contract();
