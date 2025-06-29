@@ -25,9 +25,7 @@ public class ProjectController {
 
     @GetMapping
     public ResponseEntity<List<ProjectDTO>> getAllProjects() {
-        // For now, fetch all projects (add filtering/pagination as needed)
-        // You may want to add a method in ProjectService for this
-        return ResponseEntity.ok(List.of()); // Placeholder, implement in service if needed
+        return ResponseEntity.ok(projectService.getAllProjects());
     }
 
     @PutMapping("/{id}")

@@ -17,6 +17,9 @@ import com.pm.Project_Management_Server.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
@@ -66,6 +69,11 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Project not found with id: " + id));
         return toDTO(project);
+    }
+
+    @Override
+    public List<ProjectDTO> getAllProjects() {
+        return projectRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
