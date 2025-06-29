@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
-import { FolderOpen, Eye, EyeOff } from 'lucide-react';
+import { FolderOpen, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import authService, { RegisterRequest } from '../services/authService';
 
-const Login: React.FC = () => {
-  const [credentials, setCredentials] = useState({ userName: '', password: '' });
+const Register: React.FC = () => {
+  const [formData, setFormData] = useState<RegisterRequest>({
+    userName: '',
+    email: '',
+    password: '',
+    userType: 'USER'
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLogging, setIsLogging] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
-  const { login, user } = useAuth();
+  const [success, setSuccess] = useState('');
+  const { user } = useAuth();
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
@@ -16,14 +23,19 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLogging(true);
+    setIsRegistering(true);
     setError('');
+    setSuccess('');
 
-    const success = await login(credentials);
-    if (!success) {
-      setError('Invalid credentials. Please try again.');
+    try {
+      await authService.register(formData);
+      setSuccess('Registration successful! You can now login.');
+      setFormData({ userName: '', email: '', password: '', userType: 'USER' });
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsRegistering(false);
     }
-    setIsLogging(false);
   };
 
   return (
@@ -41,13 +53,13 @@ const Login: React.FC = () => {
             <div className="flex items-center space-x-4">
               <Link
                 to="/login"
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
               >
                 Sign Up
               </Link>
@@ -62,11 +74,11 @@ const Login: React.FC = () => {
           <div className="text-center">
             <div className="flex justify-center">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <FolderOpen className="w-8 h-8 text-white" />
+                <UserPlus className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h2 className="mt-6 text-3xl font-bold text-gray-900">Welcome back</h2>
-            <p className="mt-2 text-gray-600">Sign in to your ProjectHub account</p>
+            <h2 className="mt-6 text-3xl font-bold text-gray-900">Create Account</h2>
+            <p className="mt-2 text-gray-600">Join ProjectHub to manage your projects</p>
           </div>
 
           <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
@@ -74,6 +86,12 @@ const Login: React.FC = () => {
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                   {error}
+                </div>
+              )}
+              
+              {success && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+                  {success}
                 </div>
               )}
 
@@ -85,10 +103,25 @@ const Login: React.FC = () => {
                   id="userName"
                   type="text"
                   required
-                  value={credentials.userName}
-                  onChange={(e) => setCredentials(prev => ({ ...prev, userName: e.target.value }))}
+                  value={formData.userName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, userName: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Enter your username"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Enter your email"
                 />
               </div>
 
@@ -101,8 +134,8 @@ const Login: React.FC = () => {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     required
-                    value={credentials.password}
-                    onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter your password"
                   />
@@ -116,19 +149,34 @@ const Login: React.FC = () => {
                 </div>
               </div>
 
+              <div>
+                <label htmlFor="userType" className="block text-sm font-medium text-gray-700 mb-2">
+                  User Type
+                </label>
+                <select
+                  id="userType"
+                  value={formData.userType}
+                  onChange={(e) => setFormData(prev => ({ ...prev, userType: e.target.value as 'ADMIN' | 'USER' }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                >
+                  <option value="USER">User</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+
               <button
                 type="submit"
-                disabled={isLogging}
+                disabled={isRegistering}
                 className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-teal-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLogging ? 'Signing in...' : 'Sign in'}
+                {isRegistering ? 'Creating Account...' : 'Create Account'}
               </button>
 
               <div className="text-center">
                 <p className="text-sm text-gray-600">
-                  Don't have an account?{' '}
-                  <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                    Sign up here
+                  Already have an account?{' '}
+                  <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                    Sign in here
                   </Link>
                 </p>
               </div>
@@ -140,4 +188,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default Register; 

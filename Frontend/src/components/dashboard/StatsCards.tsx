@@ -79,48 +79,36 @@ const StatsCards: React.FC = () => {
     {
       name: 'Total Projects',
       value: stats.totalProjects.toString(),
-      change: '+12%',
-      changeType: 'positive' as const,
       icon: FolderOpen,
       color: 'bg-blue-500'
     },
     {
       name: 'Active Clients',
       value: stats.activeClients.toString(),
-      change: '+2%',
-      changeType: 'positive' as const,
       icon: Users,
       color: 'bg-teal-500'
     },
     {
       name: 'Allocated Resources',
       value: stats.allocatedResources.toString(),
-      change: '+8%',
-      changeType: 'positive' as const,
       icon: UserCheck,
       color: 'bg-orange-500'
     },
     {
       name: 'Open Issues',
       value: stats.openIssues.toString(),
-      change: '-15%',
-      changeType: 'negative' as const,
       icon: AlertCircle,
       color: 'bg-red-500'
     },
     {
       name: 'Project Completion',
       value: `${stats.projectCompletion}%`,
-      change: '+5%',
-      changeType: 'positive' as const,
       icon: TrendingUp,
       color: 'bg-green-500'
     },
     {
       name: 'Avg. Project Duration',
       value: `${stats.avgProjectDuration}mo`,
-      change: '-0.5mo',
-      changeType: 'positive' as const,
       icon: Clock,
       color: 'bg-purple-500'
     },
@@ -154,11 +142,6 @@ const StatsCards: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className={`p-3 rounded-lg ${stat.color}`}>
               <stat.icon className="w-6 h-6 text-white" />
-            </div>
-            <div className={`text-sm font-medium ${
-              stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {stat.change}
             </div>
           </div>
           <div className="mt-4">
