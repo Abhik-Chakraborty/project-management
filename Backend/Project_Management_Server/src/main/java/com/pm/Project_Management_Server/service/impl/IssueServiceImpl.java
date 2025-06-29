@@ -37,6 +37,12 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
+    public List<IssueResponseDTO> getAllIssues() {
+        List<Issue> issues = issueRepository.findAll();
+        return issues.stream().map(this::toResponseDTO).collect(Collectors.toList());
+    }
+
+    @Override
     public List<IssueResponseDTO> getIssuesByProject(Long projectId) {
         List<Issue> issues = issueRepository.findAllByProject_Id(projectId);
         return issues.stream().map(this::toResponseDTO).collect(Collectors.toList());

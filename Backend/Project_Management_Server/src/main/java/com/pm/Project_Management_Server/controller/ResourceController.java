@@ -16,6 +16,12 @@ import java.util.List;
 public class ResourceController {
     private final ResourceService resourceService;
 
+    @GetMapping
+    public ResponseEntity<List<Resource>> getAllResources() {
+        List<Resource> resources = resourceService.getAllResources();
+        return ResponseEntity.ok(resources);
+    }
+
     @PostMapping
     public ResponseEntity<Resource> addResource(@RequestBody CreateResourceDTO dto) {
         Resource created = resourceService.addResource(dto);

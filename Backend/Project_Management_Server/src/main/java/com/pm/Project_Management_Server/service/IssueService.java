@@ -8,6 +8,7 @@ import java.util.List;
 @Service
 public interface IssueService {
     IssueResponseDTO createIssue(CreateIssueDTO dto);
+    List<IssueResponseDTO> getAllIssues();
     List<IssueResponseDTO> getIssuesByProject(Long projectId);
     List<IssueResponseDTO> getIssuesBySeverity(Long projectId, String severity);
     IssueResponseDTO closeIssue(Long id);

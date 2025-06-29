@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface ResourceService {
     Resource addResource(CreateResourceDTO dto);
+    List<Resource> getAllResources();
     List<Resource> getResourcesByProject(Long projectId);
     boolean validateAllocation(int allocationPercentage);
 } 

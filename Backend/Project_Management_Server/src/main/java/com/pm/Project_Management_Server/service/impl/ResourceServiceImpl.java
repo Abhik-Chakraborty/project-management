@@ -60,6 +60,11 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     @Override
+    public List<Resource> getAllResources() {
+        return resourceRepository.findAll();
+    }
+
+    @Override
     public boolean validateAllocation(int allocationPercentage) {
         return allocationPercentage > 0 && allocationPercentage <= 100;
     }

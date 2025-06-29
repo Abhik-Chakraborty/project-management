@@ -16,6 +16,12 @@ import java.util.List;
 public class IssueController {
     private final IssueService issueService;
 
+    @GetMapping
+    public ResponseEntity<List<IssueResponseDTO>> getAllIssues() {
+        List<IssueResponseDTO> issues = issueService.getAllIssues();
+        return ResponseEntity.ok(issues);
+    }
+
     @PostMapping
     public ResponseEntity<IssueResponseDTO> createIssue(@RequestBody CreateIssueDTO dto) {
         IssueResponseDTO created = issueService.createIssue(dto);
