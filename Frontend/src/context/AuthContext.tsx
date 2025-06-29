@@ -1,15 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-export interface User {
-  id: string;
-  userName: string;
-  email: string;
-  userType: 'ADMIN' | 'USER';
-}
+import authService, { User, LoginCredentials } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
-  login: (credentials: { userName: string; password: string }) => Promise<boolean>;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
   isAdmin: boolean;
@@ -34,30 +28,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth token on app start
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Check for stored auth data on app start
+    const initializeAuth = async () => {
+      try {
+        if (authService.isAuthenticated()) {
+          const currentUser = await authService.getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+          } else {
+            // Invalid stored data, clear it
+            authService.logout();
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+        authService.logout();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = async (credentials: { userName: string; password: string }): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Mock authentication - replace with actual API call
-      // const response = await fetch('/api/auth/login', { ... });
-      
-      // Mock user data for demo
-      const mockUser: User = {
-        id: '1',
-        userName: credentials.userName,
-        email: `${credentials.userName}@accolite.com`,
-        userType: credentials.userName === 'admin' ? 'ADMIN' : 'USER'
-      };
-
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const user = await authService.login(credentials);
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
       return true;
     } catch (error) {
       console.error('Login failed:', error);
@@ -69,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    authService.logout();
   };
 
   const value = {

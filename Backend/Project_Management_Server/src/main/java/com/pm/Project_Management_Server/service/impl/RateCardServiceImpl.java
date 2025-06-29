@@ -50,15 +50,15 @@ public class RateCardServiceImpl implements RateCardService {
         }
         // Deactivate any existing active rate for this project+level
         ProjectRateCard existing = projectRateCardRepository.findByProject_IdAndLevel(projectId, lvl);
-        if (existing != null && existing.isIsActive()) {
-            existing.setIsActive(false);
+        if (existing != null && existing.isActive()) {
+            existing.setActive(false);
             projectRateCardRepository.save(existing);
         }
         ProjectRateCard prc = (existing != null) ? existing : new ProjectRateCard();
         prc.setProject(project);
         prc.setLevel(lvl);
         prc.setHourlyRate(rate);
-        prc.setIsActive(true);
+        prc.setActive(true);
         prc.setLastUpdated(LocalDateTime.now());
         ProjectRateCard saved = projectRateCardRepository.save(prc);
         return toProjectDTO(saved);
@@ -74,7 +74,7 @@ public class RateCardServiceImpl implements RateCardService {
             prc.setProject(project);
             prc.setLevel(ProjectRateCard.Level.valueOf(grc.getLevel().name()));
             prc.setHourlyRate(grc.getHourlyRate());
-            prc.setIsActive(true);
+            prc.setActive(true);
             prc.setLastUpdated(LocalDateTime.now());
             projectRateCardRepository.save(prc);
         }
@@ -90,7 +90,8 @@ public class RateCardServiceImpl implements RateCardService {
                 prc.getProject().getId(),
                 prc.getLevel().name(),
                 prc.getHourlyRate(),
-                prc.isIsActive()
+                prc.isActive(),
+                prc.getLastUpdated()
         );
     }
 } 

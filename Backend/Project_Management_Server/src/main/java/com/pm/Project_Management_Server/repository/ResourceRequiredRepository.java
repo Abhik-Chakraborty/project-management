@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ResourceRequiredRepository extends JpaRepository<ResourceRequired, Long> {
-    List<ResourceRequired> findAllByProjectId(Long projectId);
+    List<ResourceRequired> findAllByProject_Id(Long projectId);
 } 

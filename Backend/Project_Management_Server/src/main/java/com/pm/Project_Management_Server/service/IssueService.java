@@ -2,8 +2,10 @@ package com.pm.Project_Management_Server.service;
 
 import com.pm.Project_Management_Server.dto.CreateIssueDTO;
 import com.pm.Project_Management_Server.dto.IssueResponseDTO;
-import java.util.List;
+import org.springframework.stereotype.Service;
 
+import java.util.List;
+@Service
 public interface IssueService {
     IssueResponseDTO createIssue(CreateIssueDTO dto);
     List<IssueResponseDTO> getIssuesByProject(Long projectId);

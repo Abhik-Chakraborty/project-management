@@ -1,49 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, MoreVertical, Building, Mail, Star, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import clientService, { Client } from '../services/clientService';
+import projectService from '../services/projectService';
 
-const clients = [
-  {
-    id: '1',
-    name: 'Morgan Stanley',
-    email: 'contact@morganstanley.com',
-    onBoardedOn: '2023-01-15',
-    clientRating: 4.8,
-    activeProjects: 3,
-    totalProjects: 8,
-    industry: 'Financial Services',
-    contactPerson: 'Robert Chen'
-  },
-  {
-    id: '2',
-    name: 'Goldman Sachs',
-    email: 'projects@goldmansachs.com',
-    onBoardedOn: '2023-03-20',
-    clientRating: 4.6,
-    activeProjects: 2,
-    totalProjects: 5,
-    industry: 'Investment Banking',
-    contactPerson: 'Lisa Wang'
-  },
-  {
-    id: '3',
-    name: 'JPMorgan Chase',
-    email: 'tech@jpmorgan.com',
-    onBoardedOn: '2023-06-10',
-    clientRating: 4.9,
-    activeProjects: 1,
-    totalProjects: 3,
-    industry: 'Banking',
-    contactPerson: 'David Miller'
-  }
-];
+interface ClientWithStats extends Client {
+  activeProjects?: number;
+  totalProjects?: number;
+  clientRating?: number;
+  contactPerson?: string;
+}
 
 const Clients: React.FC = () => {
+  const [clients, setClients] = useState<ClientWithStats[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { isAdmin } = useAuth();
 
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch clients and projects in parallel
+        const [clientsData, projectsData] = await Promise.all([
+          clientService.getAllClients(),
+          projectService.getAllProjects()
+        ]);
+
+        // Calculate stats for each client
+        const clientsWithStats = clientsData.map(client => {
+          const clientProjects = projectsData.filter(project => project.clientId === client.id);
+          const activeProjects = clientProjects.filter(project => project.status === 'ACTIVE').length;
+          
+          return {
+            ...client,
+            activeProjects,
+            totalProjects: clientProjects.length,
+            clientRating: Math.floor(Math.random() * 2) + 4, // Mock rating 4-5
+            contactPerson: 'Contact Person' // Mock contact person
+          };
+        });
+
+        setClients(clientsWithStats);
+      } catch (err) {
+        console.error('Failed to fetch clients:', err);
+        setError('Failed to load clients');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
   const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.industry.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -62,6 +76,46 @@ const Clients: React.FC = () => {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
+            <p className="text-gray-600 mt-1">Manage your client relationships and projects</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse">
+              <div className="p-6">
+                <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
+            <p className="text-gray-600 mt-1">Manage your client relationships and projects</p>
+          </div>
+        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -104,7 +158,7 @@ const Clients: React.FC = () => {
                     <Building className="w-6 h-6 text-white" />
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-lg font-semibold text-gray-900">{client.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{client.clientName}</h3>
                     <p className="text-sm text-gray-600">{client.industry}</p>
                   </div>
                 </div>
@@ -121,28 +175,30 @@ const Clients: React.FC = () => {
 
                 <div className="flex items-center text-sm text-gray-600">
                   <Calendar className="w-4 h-4 mr-2" />
-                  Onboarded: {new Date(client.onBoardedOn).toLocaleDateString()}
+                  Company Size: {client.companySize}
                 </div>
 
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Client Rating</p>
-                  {renderStars(client.clientRating)}
+                  {renderStars(client.clientRating || 4)}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{client.activeProjects}</p>
+                    <p className="text-2xl font-bold text-gray-900">{client.activeProjects || 0}</p>
                     <p className="text-xs text-gray-600">Active Projects</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{client.totalProjects}</p>
+                    <p className="text-2xl font-bold text-gray-900">{client.totalProjects || 0}</p>
                     <p className="text-xs text-gray-600">Total Projects</p>
                   </div>
                 </div>
 
                 <div className="pt-3 border-t border-gray-100">
-                  <p className="text-sm text-gray-600">Contact Person</p>
-                  <p className="font-medium text-gray-900">{client.contactPerson}</p>
+                  <p className="text-sm text-gray-600">Status</p>
+                  <p className={`font-medium ${client.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                    {client.isActive ? 'Active' : 'Inactive'}
+                  </p>
                 </div>
               </div>
             </div>

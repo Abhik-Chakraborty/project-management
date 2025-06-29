@@ -6,6 +6,7 @@ import com.pm.Project_Management_Server.entity.Resource;
 import com.pm.Project_Management_Server.exception.NotFoundException;
 import com.pm.Project_Management_Server.repository.ProjectRepository;
 import com.pm.Project_Management_Server.repository.ResourceRepository;
+import com.pm.Project_Management_Server.repository.ResourceRequiredRepository;
 import com.pm.Project_Management_Server.service.ResourceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
 public class ResourceServiceImpl implements ResourceService {
     private final ResourceRepository resourceRepository;
     private final ProjectRepository projectRepository;
+    private final ResourceRequiredRepository resourceRequiredRepository;
 
     @Override
     public Resource addResource(CreateResourceDTO dto) {
@@ -35,8 +37,7 @@ public class ResourceServiceImpl implements ResourceService {
         // ... inject ResourceRequiredRepository as resourceRequiredRepository ...
         // For each resource, you may want to check by level if you add level to Resource
         // For now, check by project
-        List<com.pm.Project_Management_Server.entity.ResourceRequired> reqs = resourceRequiredRepository.findAllByProjectId(dto.getProjectId());
-        if (!reqs.isEmpty()) {
+        List<com.pm.Project_Management_Server.entity.ResourceRequired> reqs = resourceRequiredRepository.findAllByProject_Id(dto.getProjectId());        if (!reqs.isEmpty()) {
             int requiredTotal = reqs.stream().mapToInt(com.pm.Project_Management_Server.entity.ResourceRequired::getQuantity).sum() * 100;
             maxAllowed = requiredTotal;
         }

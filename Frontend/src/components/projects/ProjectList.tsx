@@ -1,75 +1,127 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Filter, Calendar, Users, MoreVertical } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import projectService, { Project } from '../../services/projectService';
+import clientService from '../../services/clientService';
 
-const projects = [
-  {
-    id: '1',
-    projectName: 'Trading Platform Enhancement',
-    client: 'Morgan Stanley',
-    status: 'IN_PROGRESS',
-    type: 'Web Application',
-    department: 'Financial Services',
-    progress: 75,
-    startDate: '2024-01-15',
-    endDate: '2024-02-15',
-    teamSize: 12,
-    manager: 'John Smith',
-    budget: '$2,500,000'
-  },
-  {
-    id: '2',
-    projectName: 'Risk Management System',
-    client: 'Goldman Sachs',
-    status: 'IN_PROGRESS',
-    type: 'Enterprise Software',
-    department: 'Risk Management',
-    progress: 45,
-    startDate: '2024-02-01',
-    endDate: '2024-03-20',
-    teamSize: 8,
-    manager: 'Sarah Johnson',
-    budget: '$1,800,000'
-  },
-  {
-    id: '3',
-    projectName: 'Customer Portal Redesign',
-    client: 'JPMorgan Chase',
-    status: 'PLANNING',
-    type: 'Web Portal',
-    department: 'Digital Banking',
-    progress: 15,
-    startDate: '2024-03-01',
-    endDate: '2024-04-10',
-    teamSize: 6,
-    manager: 'Mike Davis',
-    budget: '$950,000'
-  }
-];
+interface ProjectWithClient extends Project {
+  clientName?: string;
+  progress?: number;
+  teamSize?: number;
+  budgetFormatted?: string;
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800';
-    case 'PLANNING': return 'bg-orange-100 text-orange-800';
+    case 'ACTIVE': return 'bg-blue-100 text-blue-800';
     case 'COMPLETED': return 'bg-green-100 text-green-800';
-    case 'ON_HOLD': return 'bg-gray-100 text-gray-800';
+    case 'ON_HOLD': return 'bg-orange-100 text-orange-800';
     case 'CANCELLED': return 'bg-red-100 text-red-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
 
+const formatStatus = (status: string) => {
+  switch (status) {
+    case 'ACTIVE': return 'In Progress';
+    case 'COMPLETED': return 'Completed';
+    case 'ON_HOLD': return 'On Hold';
+    case 'CANCELLED': return 'Cancelled';
+    default: return status;
+  }
+};
+
 const ProjectList: React.FC = () => {
+  const [projects, setProjects] = useState<ProjectWithClient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const { isAdmin } = useAuth();
 
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch projects and clients in parallel
+        const [projectsData, clientsData] = await Promise.all([
+          projectService.getAllProjects(),
+          clientService.getAllClients()
+        ]);
+
+        // Map client names to projects and add mock data for missing fields
+        const projectsWithClients = projectsData.map(project => {
+          const client = clientsData.find(c => c.id === project.clientId);
+          return {
+            ...project,
+            clientName: client?.clientName || 'Unknown Client',
+            progress: Math.floor(Math.random() * 100), // Mock progress for now
+            teamSize: Math.floor(Math.random() * 15) + 3, // Mock team size for now
+            budgetFormatted: `$${(project.budget / 1000000).toFixed(1)}M` // Format budget
+          };
+        });
+
+        setProjects(projectsWithClients);
+      } catch (err) {
+        console.error('Failed to fetch projects:', err);
+        setError('Failed to load projects');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.client.toLowerCase().includes(searchTerm.toLowerCase());
+                         (project.clientName || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+            <p className="text-gray-600 mt-1">Manage and track all your projects</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 animate-pulse">
+              <div className="p-6">
+                <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+            <p className="text-gray-600 mt-1">Manage and track all your projects</p>
+          </div>
+        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -107,10 +159,10 @@ const ProjectList: React.FC = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="ALL">All Status</option>
-              <option value="PLANNING">Planning</option>
-              <option value="IN_PROGRESS">In Progress</option>
+              <option value="ACTIVE">Active</option>
               <option value="COMPLETED">Completed</option>
               <option value="ON_HOLD">On Hold</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
             <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
               <Filter className="w-4 h-4" />
@@ -132,7 +184,7 @@ const ProjectList: React.FC = () => {
                   >
                     {project.projectName}
                   </Link>
-                  <p className="text-sm text-gray-600 mt-1">{project.client}</p>
+                  <p className="text-sm text-gray-600 mt-1">{project.clientName}</p>
                 </div>
                 <button className="p-1 hover:bg-gray-100 rounded transition-colors">
                   <MoreVertical className="w-4 h-4" />
@@ -142,20 +194,20 @@ const ProjectList: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(project.status)}`}>
-                    {project.status.replace('_', ' ')}
+                    {formatStatus(project.status)}
                   </span>
-                  <span className="text-sm text-gray-600">{project.type}</span>
+                  <span className="text-sm text-gray-600">{project.priority}</span>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Progress</span>
-                    <span className="font-medium">{project.progress}%</span>
+                    <span className="font-medium">{project.progress || 0}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${project.progress}%` }}
+                      style={{ width: `${project.progress || 0}%` }}
                     ></div>
                   </div>
                 </div>
@@ -167,14 +219,14 @@ const ProjectList: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <Users className="w-4 h-4 mr-1" />
-                    {project.teamSize} members
+                    {project.teamSize || 0} members
                   </div>
                 </div>
 
                 <div className="pt-3 border-t border-gray-100">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Budget</span>
-                    <span className="font-medium text-gray-900">{project.budget}</span>
+                    <span className="font-medium text-gray-900">{project.budgetFormatted}</span>
                   </div>
                 </div>
               </div>

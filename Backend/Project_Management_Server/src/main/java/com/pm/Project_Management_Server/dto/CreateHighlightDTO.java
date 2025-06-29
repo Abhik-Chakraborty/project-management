@@ -1,11 +1,10 @@
 package com.pm.Project_Management_Server.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
-import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter

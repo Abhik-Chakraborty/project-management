@@ -1,14 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { month: 'Jan', completed: 4, ongoing: 8, planned: 2 },
-  { month: 'Feb', completed: 6, ongoing: 6, planned: 3 },
-  { month: 'Mar', completed: 3, ongoing: 9, planned: 4 },
-  { month: 'Apr', completed: 8, ongoing: 7, planned: 2 },
-  { month: 'May', completed: 5, ongoing: 8, planned: 5 },
-  { month: 'Jun', completed: 7, ongoing: 6, planned: 3 },
-];
+const data: any[] = [];
 
 const ProjectChart: React.FC = () => {
   return (
@@ -41,6 +34,9 @@ const ProjectChart: React.FC = () => {
           <Bar dataKey="planned" fill="#F97316" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
+      {data.length === 0 && (
+        <div className="text-center text-gray-400 mt-8">No data available</div>
+      )}
     </div>
   );
 };

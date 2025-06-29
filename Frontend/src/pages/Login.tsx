@@ -94,12 +94,6 @@ const Login: React.FC = () => {
               {isLogging ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Demo: Use "admin" / "password" for admin access or "user" / "password" for user access
-            </p>
-          </div>
         </div>
       </div>
     </div>

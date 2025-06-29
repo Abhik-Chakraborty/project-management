@@ -1,6 +1,7 @@
 package com.pm.Project_Management_Server.controller;
 
 import com.pm.Project_Management_Server.dto.UserDTO;
+import com.pm.Project_Management_Server.entity.User;
 import com.pm.Project_Management_Server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class UserController {
         public String userName;
         public String email;
         public String password;
-        public UserDTO.UserType userType;
+        public User.UserType userType;
     }
 
     // DTO for login request

@@ -1,82 +1,124 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Filter, UserCheck, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import resourceService, { Resource } from '../services/resourceService';
 
-const resources = [
-  {
-    id: '1',
-    resourceName: 'John Doe',
-    projectName: 'Trading Platform Enhancement',
-    resourceLevel: 'SENIOR',
-    startDate: '2024-01-15',
-    endDate: '2024-02-15',
-    allocationPercentage: 100,
-    exp: 5,
-    isAllocated: true,
-    skills: ['React', 'Node.js', 'TypeScript']
-  },
-  {
-    id: '2',
-    resourceName: 'Jane Smith',
-    projectName: 'Risk Management System',
-    resourceLevel: 'INTERMEDIATE',
-    startDate: '2024-02-01',
-    endDate: '2024-03-20',
-    allocationPercentage: 80,
-    exp: 3,
-    isAllocated: true,
-    skills: ['Java', 'Spring Boot', 'PostgreSQL']
-  },
-  {
-    id: '3',
-    resourceName: 'Mike Johnson',
-    projectName: 'Customer Portal Redesign',
-    resourceLevel: 'JUNIOR',
-    startDate: '2024-03-01',
-    endDate: '2024-04-10',
-    allocationPercentage: 60,
-    exp: 2,
-    isAllocated: true,
-    skills: ['UI/UX', 'Figma', 'CSS']
-  },
-  {
-    id: '4',
-    resourceName: 'Sarah Wilson',
-    projectName: null,
-    resourceLevel: 'SENIOR',
-    startDate: null,
-    endDate: null,
-    allocationPercentage: 0,
-    exp: 7,
-    isAllocated: false,
-    skills: ['Python', 'Machine Learning', 'AWS']
-  }
-];
+interface ResourceWithStats extends Resource {
+  projectName?: string;
+  allocationPercentage?: number;
+  exp?: number;
+}
 
 const getLevelColor = (level: string) => {
   switch (level) {
     case 'SENIOR': return 'bg-green-100 text-green-800';
-    case 'INTERMEDIATE': return 'bg-blue-100 text-blue-800';
+    case 'MID_LEVEL': return 'bg-blue-100 text-blue-800';
     case 'JUNIOR': return 'bg-orange-100 text-orange-800';
+    case 'LEAD': return 'bg-purple-100 text-purple-800';
+    case 'ARCHITECT': return 'bg-indigo-100 text-indigo-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
 
+const formatLevel = (level: string) => {
+  switch (level) {
+    case 'SENIOR': return 'Senior';
+    case 'MID_LEVEL': return 'Mid Level';
+    case 'JUNIOR': return 'Junior';
+    case 'LEAD': return 'Lead';
+    case 'ARCHITECT': return 'Architect';
+    default: return level;
+  }
+};
+
 const Resources: React.FC = () => {
+  const [resources, setResources] = useState<ResourceWithStats[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('ALL');
   const [allocationFilter, setAllocationFilter] = useState('ALL');
   const { isAdmin } = useAuth();
 
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const resourcesData = await resourceService.getAllResources();
+
+        // Add mock data for missing fields
+        const resourcesWithStats = resourcesData.map(resource => ({
+          ...resource,
+          projectName: resource.availability ? 'Available' : 'Allocated',
+          allocationPercentage: resource.availability ? 0 : Math.floor(Math.random() * 100) + 20,
+          exp: Math.floor(Math.random() * 10) + 1 // Mock experience 1-10 years
+        }));
+
+        setResources(resourcesWithStats);
+      } catch (err) {
+        console.error('Failed to fetch resources:', err);
+        setError('Failed to load resources');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResources();
+  }, []);
+
   const filteredResources = resources.filter(resource => {
     const matchesSearch = resource.resourceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         resource.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesLevel = levelFilter === 'ALL' || resource.resourceLevel === levelFilter;
+                         resource.skills.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLevel = levelFilter === 'ALL' || resource.level === levelFilter;
     const matchesAllocation = allocationFilter === 'ALL' || 
-                             (allocationFilter === 'ALLOCATED' && resource.isAllocated) ||
-                             (allocationFilter === 'AVAILABLE' && !resource.isAllocated);
+                             (allocationFilter === 'ALLOCATED' && !resource.availability) ||
+                             (allocationFilter === 'AVAILABLE' && resource.availability);
     return matchesSearch && matchesLevel && matchesAllocation;
   });
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Resources</h1>
+            <p className="text-gray-600 mt-1">Manage team resources and allocations</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-pulse">
+              <div className="h-8 bg-gray-200 rounded mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Resources</h1>
+            <p className="text-gray-600 mt-1">Manage team resources and allocations</p>
+          </div>
+        </div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  const totalResources = resources.length;
+  const allocatedResources = resources.filter(r => !r.availability).length;
+  const availableResources = resources.filter(r => r.availability).length;
+  const avgUtilization = Math.round(resources.reduce((sum, r) => sum + (r.allocationPercentage || 0), 0) / resources.length);
 
   return (
     <div className="space-y-6">
@@ -103,7 +145,7 @@ const Resources: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Total Resources</p>
-              <p className="text-2xl font-bold text-gray-900">{resources.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{totalResources}</p>
             </div>
           </div>
         </div>
@@ -115,9 +157,7 @@ const Resources: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Allocated</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {resources.filter(r => r.isAllocated).length}
-              </p>
+              <p className="text-2xl font-bold text-gray-900">{allocatedResources}</p>
             </div>
           </div>
         </div>
@@ -129,9 +169,7 @@ const Resources: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Available</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {resources.filter(r => !r.isAllocated).length}
-              </p>
+              <p className="text-2xl font-bold text-gray-900">{availableResources}</p>
             </div>
           </div>
         </div>
@@ -143,9 +181,7 @@ const Resources: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Avg. Utilization</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {Math.round(resources.reduce((sum, r) => sum + r.allocationPercentage, 0) / resources.length)}%
-              </p>
+              <p className="text-2xl font-bold text-gray-900">{avgUtilization}%</p>
             </div>
           </div>
         </div>
@@ -172,8 +208,10 @@ const Resources: React.FC = () => {
             >
               <option value="ALL">All Levels</option>
               <option value="JUNIOR">Junior</option>
-              <option value="INTERMEDIATE">Intermediate</option>
+              <option value="MID_LEVEL">Mid Level</option>
               <option value="SENIOR">Senior</option>
+              <option value="LEAD">Lead</option>
+              <option value="ARCHITECT">Architect</option>
             </select>
             <select
               value={allocationFilter}
@@ -198,19 +236,19 @@ const Resources: React.FC = () => {
                   Resource
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Project
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Level
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Allocation
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Duration
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Skills
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Rate
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -218,68 +256,33 @@ const Resources: React.FC = () => {
               {filteredResources.map((resource) => (
                 <tr key={resource.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">
-                          {resource.resourceName.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{resource.resourceName}</div>
-                        <div className="text-sm text-gray-500">{resource.exp} years experience</div>
-                      </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{resource.resourceName}</div>
+                      <div className="text-sm text-gray-500">{resource.email}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      {resource.projectName || (
-                        <span className="text-gray-400 italic">Not assigned</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLevelColor(resource.resourceLevel)}`}>
-                      {resource.resourceLevel}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLevelColor(resource.level)}`}>
+                      {formatLevel(resource.level)}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mr-3">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${resource.allocationPercentage}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm text-gray-600">{resource.allocationPercentage}%</span>
-                    </div>
+                    <div className="text-sm text-gray-900 max-w-xs truncate">{resource.skills}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      {resource.startDate && resource.endDate ? (
-                        <>
-                          {new Date(resource.startDate).toLocaleDateString()} - {new Date(resource.endDate).toLocaleDateString()}
-                        </>
-                      ) : (
-                        <span className="text-gray-400 italic">No assignment</span>
-                      )}
-                    </div>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      resource.availability ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {resource.availability ? 'Available' : 'Allocated'}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1">
-                      {resource.skills.slice(0, 3).map((skill, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {resource.skills.length > 3 && (
-                        <span className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
-                          +{resource.skills.length - 3}
-                        </span>
-                      )}
-                    </div>
+                    <div className="text-sm text-gray-900">${resource.hourlyRate}/hr</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button className="text-blue-600 hover:text-blue-900 text-sm font-medium">
+                      View Details
+                    </button>
                   </td>
                 </tr>
               ))}

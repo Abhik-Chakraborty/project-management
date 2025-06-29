@@ -1,11 +1,11 @@
 package com.pm.Project_Management_Server.entity;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,7 +18,9 @@ public class Issue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long projectId; // FK placeholder
+    @OneToOne
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
     @Enumerated(EnumType.STRING)
     private Severity severity;
