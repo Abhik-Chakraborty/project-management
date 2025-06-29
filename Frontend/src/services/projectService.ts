@@ -3,26 +3,32 @@ import api from './api';
 export interface Project {
   id: number;
   projectName: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED';
+  type: string;
+  department: string;
+  status: string;
   clientId: number;
+  contactPersonId: number;
+  managerId: number;
   projectLeadId: number;
-  budget: number;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  budgets: number;
+  listOfHighlights: number[];
+  listOfResources: number[];
+  contractId: number;
 }
 
 export interface CreateProjectRequest {
   projectName: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED';
+  type: string;
+  department: string;
+  status: string;
   clientId: number;
+  contactPersonId: number;
+  managerId: number;
   projectLeadId: number;
-  budget: number;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  budgets: number;
+  listOfHighlights: number[];
+  listOfResources: number[];
+  contractId: number;
 }
 
 export interface UpdateProjectRequest extends Partial<CreateProjectRequest> {

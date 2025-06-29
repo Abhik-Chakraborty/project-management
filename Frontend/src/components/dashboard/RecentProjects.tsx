@@ -38,7 +38,7 @@ const RecentProjects: React.FC = () => {
 
         // Sort by creation date (most recent first) and take first 5
         const recentProjects = projectsWithClients
-          .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+          .sort((a, b) => b.id - a.id) // Sort by ID instead of startDate
           .slice(0, 5);
 
         setProjects(recentProjects);
@@ -144,9 +144,6 @@ const RecentProjects: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Team
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Priority
-              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -177,7 +174,7 @@ const RecentProjects: React.FC = () => {
                 <td className="px-6 py-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <Calendar className="w-4 h-4 mr-2" />
-                    {new Date(project.endDate).toLocaleDateString()}
+                    {project.department}
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -185,11 +182,6 @@ const RecentProjects: React.FC = () => {
                     <UsersIcon className="w-4 h-4 mr-2" />
                     {project.teamSize || 0} members
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(project.priority)}`}>
-                    {project.priority}
-                  </span>
                 </td>
               </tr>
             ))}

@@ -4,6 +4,7 @@ import { Plus, Search, Filter, Calendar, Users, MoreVertical } from 'lucide-reac
 import { useAuth } from '../../context/AuthContext';
 import projectService, { Project } from '../../services/projectService';
 import clientService from '../../services/clientService';
+import AddProjectModal from './AddProjectModal';
 
 interface ProjectWithClient extends Project {
   clientName?: string;
@@ -38,6 +39,7 @@ const ProjectList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { isAdmin } = useAuth();
 
   useEffect(() => {
@@ -60,7 +62,7 @@ const ProjectList: React.FC = () => {
             clientName: client?.clientName || 'Unknown Client',
             progress: Math.floor(Math.random() * 100), // Mock progress for now
             teamSize: Math.floor(Math.random() * 15) + 3, // Mock team size for now
-            budgetFormatted: `$${(project.budget / 1000000).toFixed(1)}M` // Format budget
+            budgetFormatted: `$${(project.budgets / 1000000).toFixed(1)}M` // Format budget
           };
         });
 
@@ -132,7 +134,10 @@ const ProjectList: React.FC = () => {
           <p className="text-gray-600 mt-1">Manage and track all your projects</p>
         </div>
         {isAdmin && (
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+          >
             <Plus className="w-4 h-4 mr-2" />
             New Project
           </button>
@@ -159,7 +164,8 @@ const ProjectList: React.FC = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="ALL">All Status</option>
-              <option value="ACTIVE">Active</option>
+              <option value="INITIATED">Initiated</option>
+              <option value="IN_PROGRESS">In Progress</option>
               <option value="COMPLETED">Completed</option>
               <option value="ON_HOLD">On Hold</option>
               <option value="CANCELLED">Cancelled</option>
@@ -196,7 +202,7 @@ const ProjectList: React.FC = () => {
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(project.status)}`}>
                     {formatStatus(project.status)}
                   </span>
-                  <span className="text-sm text-gray-600">{project.priority}</span>
+                  <span className="text-sm text-gray-600">{project.type}</span>
                 </div>
 
                 <div className="space-y-2">
@@ -215,7 +221,7 @@ const ProjectList: React.FC = () => {
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-1" />
-                    {new Date(project.endDate).toLocaleDateString()}
+                    {project.department}
                   </div>
                   <div className="flex items-center">
                     <Users className="w-4 h-4 mr-1" />
@@ -244,6 +250,16 @@ const ProjectList: React.FC = () => {
           <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
         </div>
       )}
+
+      <AddProjectModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onProjectCreated={() => {
+          setIsModalOpen(false);
+          // Refresh the projects list
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };
