@@ -27,8 +27,10 @@ public class Project {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private Long clientId; // FK placeholder
-    private Long contactPersonId; // FK placeholder
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
+    private Client client;
+    private Long contactPersonId;
     private Long managerId;
     private Long projectLeadId;
     private Double budgets;

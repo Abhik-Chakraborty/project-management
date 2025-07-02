@@ -16,4 +16,7 @@ public class CreateClientDTO {
     private String email;
     private LocalDate onBoardedOn;
     private Integer clientRating;
+    private Boolean isActive;
 } 
+
+// for client creation, we need to create a DTO that is used to create a client

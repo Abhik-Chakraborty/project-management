@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,4 +18,6 @@ public class ClientDTO {
     private String email;
     private LocalDate onBoardedOn;
     private Integer clientRating;
+    private List<ProjectDTO> projects;
+    private Boolean isActive;
 } 

@@ -41,7 +41,8 @@ public class ClientController {
             dto.getName() != null ? dto.getName() : existing.getName(),
             dto.getEmail() != null ? dto.getEmail() : existing.getEmail(),
             dto.getOnBoardedOn() != null ? dto.getOnBoardedOn() : existing.getOnBoardedOn(),
-            dto.getClientRating() != null ? dto.getClientRating() : existing.getClientRating()
+            dto.getClientRating() != null ? dto.getClientRating() : existing.getClientRating(),
+            dto.getIsActive() != null ? dto.getIsActive() : existing.getIsActive()
         );
         // Remove and re-add for demo; in real code, add update logic in service
         clientService.createClient(updateDto); // This will create a new client, not update

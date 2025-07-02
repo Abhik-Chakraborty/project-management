@@ -6,6 +6,7 @@ import com.pm.Project_Management_Server.dto.ProjectLeadDTO;
 import com.pm.Project_Management_Server.entity.Project;
 import com.pm.Project_Management_Server.entity.ProjectLead;
 import com.pm.Project_Management_Server.entity.User;
+import com.pm.Project_Management_Server.entity.Client;
 import com.pm.Project_Management_Server.exception.DuplicateResourceException;
 import com.pm.Project_Management_Server.exception.NotFoundException;
 import com.pm.Project_Management_Server.repository.ContactPersonRepository;
@@ -52,7 +53,10 @@ public class ProjectServiceImpl implements ProjectService {
         project.setType(dto.getType());
         project.setDepartment(Project.Department.valueOf(dto.getDepartment()));
         project.setStatus(Project.Status.valueOf(dto.getStatus()));
-        project.setClientId(dto.getClientId());
+        // Set client entity
+        Client client = clientRepository.findById(dto.getClientId())
+            .orElseThrow(() -> new NotFoundException("Client not found with id: " + dto.getClientId()));
+        project.setClient(client);
         project.setContactPersonId(dto.getContactPersonId());
         project.setManagerId(dto.getManagerId());
         project.setProjectLeadId(dto.getProjectLeadId());
@@ -106,7 +110,7 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getType(),
                 project.getDepartment().name(),
                 project.getStatus().name(),
-                project.getClientId(),
+                project.getClient().getId(),
                 project.getContactPersonId(),
                 project.getManagerId(),
                 project.getProjectLeadId(),

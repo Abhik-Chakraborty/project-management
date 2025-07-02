@@ -28,6 +28,7 @@ public class ClientServiceImpl implements ClientService {
         client.setEmail(dto.getEmail());
         client.setOnBoardedOn(dto.getOnBoardedOn());
         client.setClientRating(dto.getClientRating());
+        client.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
         Client saved = clientRepository.save(client);
         return toDTO(saved);
     }
@@ -51,13 +52,44 @@ public class ClientServiceImpl implements ClientService {
         return toDTO(client);
     }
 
+    @Override
+    public ClientDTO updateClient(Long id, CreateClientDTO dto) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Client not found with id: " + id));
+        if (dto.getName() != null) client.setName(dto.getName());
+        if (dto.getEmail() != null) client.setEmail(dto.getEmail());
+        if (dto.getOnBoardedOn() != null) client.setOnBoardedOn(dto.getOnBoardedOn());
+        if (dto.getClientRating() != null) client.setClientRating(dto.getClientRating());
+        if (dto.getIsActive() != null) client.setIsActive(dto.getIsActive());
+        Client saved = clientRepository.save(client);
+        return toDTO(saved);
+    }
+
     private ClientDTO toDTO(Client client) {
         return new ClientDTO(
                 client.getId(),
                 client.getName(),
                 client.getEmail(),
                 client.getOnBoardedOn(),
-                client.getClientRating()
+                client.getClientRating(),
+                client.getProjects() == null ? List.of() : client.getProjects().stream().map(p ->
+                        new com.pm.Project_Management_Server.dto.ProjectDTO(
+                                p.getId(),
+                                p.getProjectName(),
+                                p.getType(),
+                                p.getDepartment() != null ? p.getDepartment().name() : null,
+                                p.getStatus() != null ? p.getStatus().name() : null,
+                                p.getClient() != null ? p.getClient().getId() : null,
+                                p.getContactPersonId(),
+                                p.getManagerId(),
+                                p.getProjectLeadId(),
+                                p.getBudgets(),
+                                p.getListOfHighlights(),
+                                p.getListOfResources(),
+                                p.getContractId()
+                        )
+                ).collect(java.util.stream.Collectors.toList()),
+                client.getIsActive()
         );
     }
 } 
