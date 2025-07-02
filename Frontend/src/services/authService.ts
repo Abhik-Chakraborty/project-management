@@ -21,28 +21,26 @@ export interface RegisterRequest {
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<User> {
-    // For HTTP Basic Auth, we test by accessing a protected endpoint
-    // We'll use the /api/users endpoint to verify credentials
-    const response = await api.get('/users', {
-      auth: {
-        username: credentials.userName,
-        password: credentials.password
-      }
-    });
-    
-    // If we get here, authentication was successful
-    // We need to find the user in the response or make another call
-    const users = response.data;
-    const user = users.find((u: User) => u.userName === credentials.userName);
-    
-    if (!user) {
-      throw new Error('User not found');
+    try {
+      // For HTTP Basic Auth, we test by accessing a protected endpoint
+      // We'll use the /api/users/username/{userName} endpoint to verify credentials
+      const response = await api.get(`/users/username/${credentials.userName}`, {
+        auth: {
+          username: credentials.userName,
+          password: credentials.password
+        }
+      });
+      
+      // If we get here, authentication was successful
+      const user = response.data;
+      
+      // Store password for future requests (in a real app, you'd use tokens)
+      localStorage.setItem('password', credentials.password);
+      
+      return user;
+    } catch (error) {
+      throw new Error('Invalid credentials');
     }
-    
-    // Store password for future requests (in a real app, you'd use tokens)
-    localStorage.setItem('password', credentials.password);
-    
-    return user;
   }
 
   async register(userData: RegisterRequest): Promise<User> {

@@ -2,13 +2,15 @@ import api from './api';
 
 export interface Client {
   id: number;
-  clientName: string;
+  name: string;
   email: string;
   phone: string;
   address: string;
   industry: string;
   companySize: string;
   isActive: boolean;
+  onBoardedOn: string;
+  clientRating: number;
 }
 
 export interface CreateClientRequest {
