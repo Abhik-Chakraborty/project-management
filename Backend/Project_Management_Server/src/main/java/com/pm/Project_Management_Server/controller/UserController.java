@@ -61,6 +61,16 @@ public class UserController {
             .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @GetMapping("/username/{userName}")
+    public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String userName) {
+        try {
+            UserDTO user = userService.findByUserName(userName);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
